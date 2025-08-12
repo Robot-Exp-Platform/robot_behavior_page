@@ -1,10 +1,20 @@
 # Hans 华沿（原名大族）
 
-下载地址及安装方式：
+[libhans](https://github.com/Robot-Exp-Platform/libhans-rs)
 
-=== "github"
-    [libhans](https://github.com/Robot-Exp-Platform/libhans-rs)
+大族机器人被实例化为 `HansRobot` 在使用时需要先创建一个 `HansRobot` 实例。
+
 === "rust"
-    [libhans-rs](https://crates.io/crates/libhans)
+    ```rust
+    use libhans::HansRobot;
+
+    let mut robot = HansRobot::new("172.168.1.1");
+    ```
+    [libhans](https://crates.io/crates/libhans)
 === "python"
-    [libhans-python](https://pypi.org/project/libhans/)
+    ```python
+    from libhans import HansRobot
+
+    robot = HansRobot("172.168.1.1")
+    ```
+    [libhans](https://pypi.org/project/libhans/)
