@@ -1,6 +1,114 @@
 # 03 机械臂预规划接口
 
-TODO 将 `ArmPreplannedMotion` 接口整理为更详细的文档
+## 接口组成
+
+预规划类接口要求在动作执行前就已知运动目标和轨迹。其本质上为两种类型的运动 `move_to` 和 `move_path`，其他指令都是在此基础上扩展的。拓展有两种方式：使用自带的拓展指令如 `move_joint_rel` 等，或者使用机械臂[基础指令](./01%20ArmBehavior.md)中的 `set_` 或 `with_` 指令修饰。
+
+例如：以下这两种语法具有相同的功能，都表示在笛卡尔空间中相对于当前位置位移。
+
+=== "Rust"
+    ```rust
+    // 使用拓展指令
+    robot.move_cartesian_rel(&target_pose);
+
+    // 使用基础指令修饰
+    robot.with_coord(Coord::Shot)
+        .move_cartesian(&target_pose);
+    ```
+
+=== "Python"
+    ```python
+    # 使用拓展指令
+    robot.move_cartesian_rel(target_pose)
+
+    # 使用基础指令修饰
+    robot.with_coord("shot") \
+        .move_cartesian(target_pose)
+    ```
+
+我们将拓展指令涉及到的前后缀进行整理。
+
+- `joint` 在关节空间中运动
+- `cartesian` 在笛卡尔空间中运动
+- `rel` 相对于当前位姿运动
+- `int` 相对于当前惯性坐标系运动（和基坐标系方向一致，原点位置在当前位置）
+- `async` 异步运动（机器人运动不会阻塞代码运行，可以多机器人一起动，但是要注意在机器人运动完成前不能下发其他运动指令，最好用 `is_moving()` 函数来判断）
+
+所有拓展指令的命名都是上述前后缀的组合。如要求机器人在关节空间中直线运动到某处，并不阻塞电脑程序运行，则可以使用：
+
+=== "Rust"
+    ```rust
+    robot.move_joint_async(&target_joint);
+    ```
+
+=== "Python"
+    ```python
+    robot.move_joint_async(target_joint)
+    ```
+
+全部可用的拓展指令见本页最后
+
+## 使用样例
+
+在完成机器人实例化并上使能后即可使用运动接口，以下是一些使用样例：
+
+关节空间运动到指定位置(非阻塞)
+
+=== "Rust"
+    ```rust
+    let target_joint = [0.0, 0.5, 0.0, -1.0, 0.0, 1.5];
+    robot.move_joint_async(&target_joint);
+
+    while robot.is_moving() {
+        sleep(Duration::from_millis(10));
+    }
+    ```
+
+=== "Python"
+    ```python
+    target_joint = [0.0, 0.5, 0.0, -1.0, 0.0, 1.5]
+    robot.move_joint_async(target_joint)
+
+    while robot.is_moving():
+        sleep(0.01)
+    ```
+
+关节空间相对运动到指定位置（阻塞）
+
+=== "Rust"
+    ```rust
+    let target_joint = [0.0, 0.5, 0.0, -1.0, 0.0, 1.5];
+    robot.move_joint_rel(&target_joint);
+    ```
+
+=== "Python"
+    ```python
+    target_joint = [0.0, 0.5, 0.0, -1.0, 0.0, 1.5]
+    robot.move_joint_rel(target_joint)
+    ```
+
+从文件中读取路径并沿轨迹运动(阻塞)
+
+=== "Rust"
+    ```rust
+    robot.move_path_from_file("path.json");
+    ```
+
+=== "Python"
+    ```python
+    path = read_path_from_file("path.json")
+    ```
+
+=== "使用到的Json文件"
+    ```json
+    [
+        {"joint": [0.0, 0.5, 0.0, -1.0, 0.0, 1.5]},
+        {"joint": [0.1, 0.6, 0.1, -1.1, 0.1, 1.6]},
+        {"joint": [0.2, 0.7, 0.2, -1.2, 0.2, 1.7]}
+    ]
+    ```
+
+## 完整可用接口
 
 === "Python"
     ```python
