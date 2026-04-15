@@ -22,14 +22,14 @@
 
 ```rust
 robot.move_to(MotionType::Joint([0.;6]))?;
-robot.move_to(MotionType::Cartensian(Pose::Euler([0;3],[0.;3])))?;
+robot.move_to(MotionType::Cartesian(Pose::Euler([0.;3],[0.;3])))?;
 ```
 
 当然我们还准备了一些简化的函数，如以下的函数具备和上述代码相同的功能：
 
 ```rust
-robot.move_joint([0.;6])?;
-robot.move_cartesian_euler([0;3],[0.;3])?;
+robot.move_joint(&[0.;6])?;
+robot.move_cartesian(&Pose::Euler([0.;3],[0.;3]))?;
 ```
 
 整体来说，我们将机器人接口分为 3 类：预规划接口、流式接口、闭包接口（实时控制接口），这三类接口分别描述:轨迹发布时已知；轨迹发布时未知，但是运行时发布；轨迹发布时未知，运行时通过闭包计算得到控制量三种情形。基本涵盖了所有的控制方法。

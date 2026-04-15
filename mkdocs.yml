@@ -1,8 +1,8 @@
 site_name: Roplat | Robot Behavior
 
 theme:
-  logo: asserts/icon.png
-  favicon: asserts/icon.png
+  logo: assets/icon.png
+  favicon: assets/icon.png
   name: material
   features:
     - content.code.copy

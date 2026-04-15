@@ -1,157 +1,113 @@
 # 04 机械臂流式控制接口
 
-TODO 将 `ArmStreamingMotion` 接口整理为更详细的文档
+流式控制接口用于运动目标在执行前未知，在执行过程中由上位机实时下发的场景。流式控制的核心是通过 `start_streaming` 获取一个流式控制句柄（Handle），然后通过句柄不断设置新的运动/控制目标。同时也提供了基于共享对象的方式，通过线程安全的共享变量来传递目标。
+
+## 使用方式
+
+流式控制有两种使用方式：
+
+**方式一：句柄模式**
+
+通过 `start_streaming()` 获取句柄，然后通过句柄下发运动目标。
+
+=== "Rust"
+    ```rust
+    let mut handle = robot.start_streaming()?;
+    for target in trajectory {
+        handle.move_to(MotionType::Joint(target))?;
+        sleep(Duration::from_millis(1));
+    }
+    robot.end_streaming()?;
+    ```
+
+=== "Python"
+    ```python
+    handle = robot.start_streaming()
+    for target in trajectory:
+        handle.move_to(MotionType.Joint(target))
+        sleep(0.001)
+    robot.end_streaming()
+    ```
+
+**方式二：共享对象模式**
+
+通过 `move_to_target()` 等方法获取线程安全的共享对象，在其他线程中修改目标值。
+
+## ArmStreamingMotion 接口
+
+=== "Rust"
+    ```rust
+    pub trait ArmStreamingMotion<const N: usize>: Arm<N> {
+        type Handle: ArmStreamingHandle<N>;
+
+        fn start_streaming(&mut self) -> RobotResult<Self::Handle>;
+        fn end_streaming(&mut self) -> RobotResult<()>;
+        fn move_to_target(&mut self) -> Arc<Mutex<Option<MotionType<N>>>>;
+        fn control_with_target(&mut self) -> Arc<Mutex<Option<ControlType<N>>>>;
+    }
+    ```
 
 === "Python"
     ```python
     class ArmStreamingMotion:
-        """
-        ArmStreamingMotion
+        def start_streaming(self) -> ArmStreamingHandle: ...
+        def end_streaming(self) -> None: ...
+        def move_to_target(self) -> object: ...
+        def control_with_target(self) -> object: ...
+    ```
 
-        Streaming motion interface for robot arm, supports starting/stopping streaming and accessing shared targets.
-    
-        机械臂流式运动接口，支持流式运动的启动/停止及目标共享对象的访问。
-        """
-        def start_streaming(self) -> 'ArmStreamingHandle':
-            """
-            Start streaming motion.
-    
-            开始流式运动。
-            """
-            ...
-        def end_streaming(self) -> None:
-            """
-            End streaming motion.
-    
-            结束流式运动。
-            """
-            ...
-        def move_to_target(self) -> object:
-            """
-            Get the shared object for motion target.
-    
-            获取运动目标的共享对象。
-            """
-            ...
-        def control_with_target(self) -> object:
-            """
-            Get the shared object for control target.
-    
-            获取控制目标的共享对象。
-            """
-            ...
-    
+## ArmStreamingMotionExt 扩展接口
+
+扩展接口提供各种具体类型的共享对象访问：
+
+=== "Rust"
+    ```rust
+    pub trait ArmStreamingMotionExt<const N: usize>: ArmStreamingMotion<N> {
+        fn move_joint_target(&mut self) -> Arc<Mutex<Option<[f64; N]>>>;
+        fn move_joint_vel_target(&mut self) -> Arc<Mutex<Option<[f64; N]>>>;
+        fn move_joint_acc_target(&mut self) -> Arc<Mutex<Option<[f64; N]>>>;
+        fn move_cartesian_target(&mut self) -> Arc<Mutex<Option<Pose>>>;
+        fn move_cartesian_vel_target(&mut self) -> Arc<Mutex<Option<[f64; 6]>>>;
+        fn move_cartesian_euler_target(&mut self) -> Arc<Mutex<Option<[f64; 6]>>>;
+        fn move_cartesian_quat_target(&mut self) -> Arc<Mutex<Option<na::Isometry3<f64>>>>;
+        fn move_cartesian_homo_target(&mut self) -> Arc<Mutex<Option<[f64; 16]>>>;
+        fn control_tau_target(&mut self) -> Arc<Mutex<Option<[f64; N]>>>;
+    }
+    ```
+
+=== "Python"
+    ```python
     class ArmStreamingMotionExt:
-        """
-        ArmStreamingMotionExt
-    
-        Extension interface for streaming motion, provides access to various shared targets.
-    
-        机械臂流式运动扩展接口，提供多种目标的共享对象访问。
-        """
-        def move_joint_target(self) -> object:
-            """
-            Get the shared object for joint target.
-    
-            获取关节目标的共享对象。
-            """
-            ...
-        def move_joint_vel_target(self) -> object:
-            """
-            Get the shared object for joint velocity target.
-    
-            获取关节速度目标的共享对象。
-            """
-            ...
-        def move_joint_acc_target(self) -> object:
-            """
-            Get the shared object for joint acceleration target.
-    
-            获取关节加速度目标的共享对象。
-            """
-            ...
-        def move_cartesian_target(self) -> object:
-            """
-            Get the shared object for Cartesian target.
-    
-            获取笛卡尔目标的共享对象。
-            """
-            ...
-        def move_cartesian_vel_target(self) -> object:
-            """
-            Get the shared object for Cartesian velocity target.
-    
-            获取笛卡尔速度目标的共享对象。
-            """
-            ...
-        def move_cartesian_euler_target(self) -> object:
-            """
-            Get the shared object for Euler angle target.
-    
-            获取欧拉角目标的共享对象。
-            """
-            ...
-        def move_cartesian_quat_target(self) -> object:
-            """
-            Get the shared object for quaternion target.
-    
-            获取四元数目标的共享对象。
-            """
-            ...
-        def move_cartesian_homo_target(self) -> object:
-            """
-            Get the shared object for homogeneous matrix target.
-    
-            获取齐次矩阵目标的共享对象。
-            """
-            ...
-        def control_tau_target(self) -> object:
-            """
-            Get the shared object for torque target.
-    
-            获取力矩目标的共享对象。
-            """
-            ...
+        def move_joint_target(self) -> object: ...
+        def move_joint_vel_target(self) -> object: ...
+        def move_joint_acc_target(self) -> object: ...
+        def move_cartesian_target(self) -> object: ...
+        def move_cartesian_vel_target(self) -> object: ...
+        def move_cartesian_euler_target(self) -> object: ...
+        def move_cartesian_quat_target(self) -> object: ...
+        def move_cartesian_homo_target(self) -> object: ...
+        def control_tau_target(self) -> object: ...
     ```
 
 ## 流式控制句柄
 
+`ArmStreamingHandle` 是流式控制的操作句柄，提供上一帧运动/控制目标的读取和新目标的设置：
+
+=== "Rust"
+    ```rust
+    pub trait ArmStreamingHandle<const N: usize> {
+        fn last_motion(&self) -> Option<MotionType<N>>;
+        fn move_to(&mut self, target: MotionType<N>) -> RobotResult<()>;
+        fn last_control(&self) -> Option<ControlType<N>>;
+        fn control_with(&mut self, control: ControlType<N>) -> RobotResult<()>;
+    }
+    ```
+
 === "Python"
     ```python
     class ArmStreamingHandle:
-        """
-        ArmStreamingHandle
-
-        Streaming handle for robot arm, provides access to last motion/control and allows setting new targets.
-    
-        机械臂流式运动句柄，提供上一个运动/控制目标的访问与新目标的设置。
-        """
-        def last_motion(self) -> 'MotionType':
-            """
-            Get the last motion target.
-    
-            获取上一个运动目标。
-            """
-            ...
-        def move_to(self, target: 'MotionType') -> None:
-            """
-            Set a new motion target for streaming.
-    
-            设置新的流式运动目标。
-            """
-            ...
-        def last_control(self) -> 'ControlType':
-            """
-            Get the last control target.
-    
-            获取上一个控制目标。
-            """
-            ...
-        def control_with(self, control: 'ControlType') -> None:
-            """
-            Set a new control target for streaming.
-    
-            设置新的流式控制目标。
-            """
-            ...
+        def last_motion(self) -> MotionType: ...
+        def move_to(self, target: MotionType) -> None: ...
+        def last_control(self) -> ControlType: ...
+        def control_with(self, control: ControlType) -> None: ...
     ```

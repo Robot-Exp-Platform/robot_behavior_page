@@ -2,25 +2,26 @@
 
 以下的接口为机器人基础接口，主要为基础的上下电上下使能等操作，不包含危险指令，但是并非所有的机器人厂商都支持完整的操作流程。一般认为的机器人操作流程见下图：
 
-![机器人操作流程](../asserts/机器人运行流程.png)
+![机器人操作流程](../../assets/机器人运行流程.png)
 
 - `version`
 
-获取驱动版本和机器人版本，一般来说是一样的，但是因厂商而异。如 Franka 存在[版本兼容管理](https://www.franka.cn/FCI/compatibility.html)， 系统版本、驱动版本、机器人版本应当挂钩，否则会出现指令问题。
+获取驱动版本和机器人版本，一般来说是一样的，但是因厂商而异。如 Franka 存在[版本兼容管理](https://www.franka.cn/FCI/compatibility.html)， 系统版本、驱动版本、机器人版本应当挂钩，否则会出现指令问题。注意该方法为关联函数（静态方法），不需要实例调用。
 
 === "Rust"
     ```rust
-    pub fn version(&self) -> String
+    pub fn version() -> String
     ```
 
 === "Python"
     ```python
-    def version(self) -> str: ...
+    @classmethod
+    def version(cls) -> str: ...
     ```
 
 === "C++"
     ```cpp
-    std::string version()
+    static std::string version()
     ```
 
 - `init`
@@ -124,7 +125,7 @@
 
 === "Rust"
     ```rust
-    pub fn is_moving(&mut self) -> bool
+    pub fn is_moving(&mut self) -> RobotResult<bool>
     ```
 
 === "Python"
@@ -137,9 +138,28 @@
     bool is_moving()
     ```
 
+- `waiting_for_finish`
+
+等待机器人运动完成，该方法会阻塞当前线程直到机器人运动结束。适用于需要确保运动完成后再继续执行后续指令的场景。
+
+=== "Rust"
+    ```rust
+    pub fn waiting_for_finish(&mut self) -> RobotResult<()>
+    ```
+
+=== "Python"
+    ```python
+    def waiting_for_finish(self) -> None: ...
+    ```
+
+=== "C++"
+    ```cpp
+    void waiting_for_finish()
+    ```
+
 - `stop`
 
-停止机器人的运动，停止后的机器人会立即停止运动，本指令并不会自动去使能
+停止机器人的运动，停止后的机器人会立即停止运动，该停止不可恢复，本指令并不会自动去使能。
 
 === "Rust"
     ```rust
@@ -156,9 +176,28 @@
     void stop()
     ```
 
+- `pause`
+
+暂停机器人当前的运动，暂停后的机器人可以通过 `resume` 恢复运动。与 `stop` 不同的是，`pause` 是可恢复的。
+
+=== "Rust"
+    ```rust
+    pub fn pause(&mut self) -> RobotResult<()>
+    ```
+
+=== "Python"
+    ```python
+    def pause(self) -> None: ...
+    ```
+
+=== "C++"
+    ```cpp
+    void pause()
+    ```
+
 - `resume`
 
-恢复运动状态，由 `stop` 指令停止后的机器人可以通过 `resume` 恢复运动，但是触发 `emergency_stop` 后的机器人需要先 `clear_emergency_stop` 才能恢复运动。
+恢复运动状态，由 `pause` 指令暂停后的机器人可以通过 `resume` 恢复运动，但是触发 `emergency_stop` 后的机器人需要先 `clear_emergency_stop` 才能恢复运动。
 
 === "Rust"
     ```rust
@@ -196,6 +235,8 @@
 
 - `clear_emergency_stop`
 
+清除急停状态，清除后机器人可以重新使能并恢复运动。
+
 === "Rust"
     ```rust
     pub fn clear_emergency_stop(&mut self) -> RobotResult<()>
@@ -222,10 +263,32 @@
 
 === "Python"
     ```python
-    def read_state(self) -> Self.State: ...
+    def read_state(self) -> RobotState: ...
     ```
 
 === "C++"
     ```cpp
     Self::State read_state()
+    ```
+
+## 辅助特征
+
+- `RobotFile`
+
+标记特征，声明机器人的 URDF 文件路径，用于仿真和可视化。
+
+=== "Rust"
+    ```rust
+    pub trait RobotFile {
+        const URDF: &'static str;
+    }
+    ```
+
+- `Realtime`
+
+标记特征，表示该机器人支持实时控制。
+
+=== "Rust"
+    ```rust
+    pub trait Realtime {}
     ```
