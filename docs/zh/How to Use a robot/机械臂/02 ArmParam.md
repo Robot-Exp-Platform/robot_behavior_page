@@ -73,7 +73,7 @@ pub enum JointType {
 `ArmParam` 同时提供了一组限幅函数，用于在实时控制中对关节位置、速度、加速度和力矩进行安全限制。这些函数遵循逐级限幅的思想：先限制高阶量（加加速度），再逐级传递到低阶量（位置）。
 
 | 函数 | 说明 |
-|------|------|
+|--:---|---:---|
 | `limit_joint_jerk` | 限制关节加加速度 |
 | `limit_joint_acc` | 限制关节加速度（考虑加加速度约束） |
 | `limit_joint_vel` | 限制关节速度（考虑加速度和加加速度约束） |
@@ -88,7 +88,6 @@ pub enum JointType {
     ```rust
     pub trait ArmForwardKinematics<const N: usize> {
         const DH: [DhParam; N];
-
         fn kine_cache(q: &[f64; N], q_dot: &[f64; N]) -> ArmKineCache<N>;
         fn fk_end_pose(q: &[f64; N]) -> Pose;
     }
@@ -99,7 +98,6 @@ pub enum JointType {
     class ArmParam:
         @staticmethod
         def dh() -> list[list[float]]: ...
-
         @staticmethod
         def forward_kinematics(q: list[float]) -> Pose: ...
     ```
@@ -133,7 +131,7 @@ pub struct ArmKineCache<const N: usize> {
 `ArmKineCache` 提供的方法：
 
 | 方法 | 说明 |
-|------|------|
+|--:---|---:---|
 | `build(dh, q, q_dot)` | 构建运动学缓存 |
 | `end_effector_pose()` | 获取末端执行器位姿 |
 | `link_pose(link)` | 获取指定连杆位姿 |
@@ -152,7 +150,6 @@ pub struct ArmKineCache<const N: usize> {
         ArmForwardKinematics<N> + ArmParam<N>
     {
         const ANALYTIC_FAMILY: Option<AnalyticFamily> = None;
-
         fn ik_analytic_all(target: &Pose) -> Option<Vec<JVec<N>>>;
         fn ik_analytic_best(q_seed: &JVec<N>, target: &Pose) -> Option<JVec<N>>;
         fn task_error_and_jacobian(q: &JVec<N>, target: &Pose) -> (Twist, Jaco<N>);

@@ -2,21 +2,7 @@
 
 本通用驱动的设计是面向对象的，不同的机器人需要先获得对应的对象实例才能进行操作。具体的实例化方法随机器人的不同而有所不同，在教程剩余部分中，统一使用 `robot` 作为对象实例的名称。
 
-当前可以使用的对象实例包括：
-
-样例机器人
-
-- [exrobot](../Robots%20Derived/exrobot.md)
-
-实物机器人
-
-- [Franka](../Robots%20Derived/实物机器人/franka%20emika.md)
-- [Hans](../Robots%20Derived/实物机器人/hans.md)
-- [Jaka](../Robots%20Derived/实物机器人/jaka.md)
-
-仿真机器人
-
-- []
+你可以在 [robots](https://robot-exp-platform.github.io/robot_behavior_page/) 中找到当前已经实现了哪些机器人，如果你实现了机器人，也可以联系我们更新。
 
 ---
 
