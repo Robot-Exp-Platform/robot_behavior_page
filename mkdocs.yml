@@ -1,4 +1,4 @@
-site_name: Roplat | Robot Behavior
+site_name: Robot Behavior
 
 theme:
   logo: assets/icon.png
@@ -40,6 +40,20 @@ plugins:
         - locale: en
           name: English
           build: true
+          nav_translations:
+            首页: Home
+            指南: Guide
+            总览: Overview
+            安装与特性: Installation and Features
+            使用驱动: Using a Driver
+            实现驱动: Implementing a Driver
+            概念: Concepts
+            能力模型: Capability Model
+            运动与控制: Motion and Control
+            几何与运动学: Geometry and Kinematics
+            参考: Reference
+            API 映射: API Map
+            生态与状态: Ecosystem and Status
   - git-authors:
       show_contribution: true
       show_line_count: true
@@ -77,6 +91,21 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 copyright: 内部使用，切勿外传
+
+nav:
+  - 首页: index.md
+  - 指南:
+    - 总览: guide/overview.md
+    - 安装与特性: guide/install.md
+    - 使用驱动: guide/using-a-driver.md
+    - 实现驱动: guide/implementing-a-driver.md
+  - 概念:
+    - 能力模型: concepts/capability-model.md
+    - 运动与控制: concepts/motion-and-control.md
+    - 几何与运动学: concepts/kinematics-and-geometry.md
+  - 参考:
+    - API 映射: reference/api-map.md
+    - 生态与状态: reference/ecosystem.md
 
 extra_javascript:
   - javascripts/mathjax.js

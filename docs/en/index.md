@@ -1,41 +1,26 @@
 # Robot Behavior
 
-This library is part of the [Universal Robot Driver Project](https://github.com/Robot-Exp-Platform/robot_behavior)! We are committed to providing Rust driver support for more robotic platforms! **Unifying driver interfaces across different robot models, reducing the learning curve for robotics, and delivering more efficient robot control solutions!**
+`robot_behavior` is the shared behavior-contract crate for the Roplat driver stack. It is not tied to one robot model; it extracts the behavior interfaces that real arms, simulators, visualizers and Roplat adapters need to share.
 
-This library is a general robot driven feature library, used to describe the characteristics of robot behavior. It provides some common feature descriptors and implementations for use by other robot driver libraries. At the same time, the signature database also implements automatic derivation macros for common interfaces, which can be used to derive secure interface implementations.
+The current version is centered on **typed motion spaces**, **typed realtime control channels**, **fixed-DoF arm modeling**, and reusable kinematics / trajectory utilities.
 
-We aim to ensure consistent behavior of driver libraries across various operating platforms, as well as compatibility among different driver libraries. We hope that through the use of this library, we can minimize the learning curve associated with robot operations and achieve seamless integration.
+## Who Should Read This
 
-## The principles of interface design
+- Driver users: start with [Using a Driver](guide/using-a-driver.md).
+- Driver authors: start with [Implementing a Driver](guide/implementing-a-driver.md).
+- API/design readers: read [Capability Model](concepts/capability-model.md) and [Motion and Control](concepts/motion-and-control.md).
+- API lookup: see [API Map](reference/api-map.md).
 
-- **Complete interface description**. During the usage of each interface, the behavior executed by that interface should be clearly and completely expressed
-- **Semantic consistency**: Function parameters/return values and function names should have consistent semantics
-- **Consistent behavior**: The behavior of the interface should remain consistent across different driver libraries
+## Main Interfaces
 
-## How to use the robot driven by this library
+| Layer | Key types | Purpose |
+|---|---|---|
+| Lifecycle | `Robot` | connect, enable, read state, stop, shutdown |
+| Arm description | `Joints<N>`, `EndPoint`, `Arm<N>` | joint limits, Cartesian limits, state and payload |
+| Motion | `MotionSpace`, `MoveTo`, `MoveTraj`, `Motion` | typed motion spaces and a uniform call surface |
+| Realtime control | `ControlSpace`, `RealtimeControl`, `Control` | typed control channels and closure-driven loops |
+| Geometry / kinematics | `Pose`, `DhParam`, `ArmKineCache`, `IKMethod` | pose, DH, FK/IK, Jacobian |
+| Utilities | `utils::*` | limits, interpolation, trajectory generation, copp retiming |
 
-[robot_behavior](https://robot-exp-platform.github.io/robot_behavior_page/)。
-
-All robots derived from this library follow the same interface specification. For consistency, we usually name the instantiated driver `robot`, and the rest of this document assumes that name.
-
-Here is a minimal example of commanding a robot:
-
-```rust
-robot.move_to(MotionType::Joint([0.; 6]))?;
-robot.move_to(MotionType::Cartensian(Pose::Euler([0; 3], [0.; 3])))?;
-```
-
-We also provide helper shortcuts that perform the same actions:
-
-```rust
-robot.move_joint([0.; 6])?;
-robot.move_cartesian_euler([0; 3], [0.; 3])?;
-```
-
-Conceptually, the interfaces fall into three categories:
-
-1. **Preplanned interfaces** – trajectories are known at the time of submission.
-2. **Streaming interfaces** – trajectories are generated online and streamed while the robot is moving.
-3. **Closure/real-time interfaces** – control commands are computed inside a user-provided closure during execution.
-
-Together these categories cover most control scenarios. We are continuously adding support for more robots and friendlier APIs. See [robots](https://robot-exp-platform.github.io/robot_behavior_page/) for the latest list, and reach out if you have a new driver to add.
+!!! note
+    `src/robot_old` is not the current public interface. This documentation follows the items re-exported by `src/lib.rs` and `src/robot/mod.rs`.

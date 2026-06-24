@@ -1,58 +1,39 @@
 # Robot Behavior
 
-本库是[通用机器人驱动计划](https://github.com/Robot-Exp-Platform/robot_behavior)中的一员！我们立志于为更多的机器人平台提供 Rust 语言及更多语言的驱动支持！**统一不同型号的机器人驱动接口，降低机器人学习成本，提供更高效的机器人控制方案！**
+`robot_behavior` 是 Roplat 驱动体系的行为契约 crate。它定义“机器人应该暴露什么能力”，而不是直接实现某一个硬件驱动。
 
-本库是通用机器人驱动的特征库，用于描述机器人行为的特征。它提供了一些通用的特征描述符和实现，供其他机器人驱动库使用。同时特征库也为常见的接口实现了自动派生宏，用于派生安全的接口实现。
+当前实现已经从旧的运行时 `MotionType` / `ControlType` 枚举，切换为类型级空间模型：
 
-我们正在力求确保驱动库在不同的操作平台上行为的一致性和不同驱动库之间的兼容性。我们希望通过这个库，减少机器人操作之间的学习成本，达到一门通而门门通的效果。
-
-## 接口设计原则
-
-- **描述完整**，每个接口在使用过程中应当完整明确的表达该接口执行的行为
-- **语义一致**，函数参数/返回值与函数名应当具有一致的语义
-- **行为一致**，接口的行为应当在不同的驱动库中保持一致
-
-## 如何使用本库驱动的机器人？
-
-由本库派生的机器人均满足相同的接口规范。文档见 [robot_behavior](https://robot-exp-platform.github.io/robot_behavior_page/)。
-
-对于不同的机器人，我们通常建议以 `robot` 作为对象名，在之后的说明中，均以 `robot` 作为实例化后的机器人对象。
-
-一个简单的移动机器人的样例如下：
+- `Robot` 管生命周期和基础状态读取。
+- `Joints<N>` / `EndPoint` 管模型级限位。
+- `MotionSpace` / `MoveTo` / `MoveTraj` 管预规划运动。
+- `ControlSpace` / `RealtimeControl` 管闭包式实时控制。
+- `Pose`、`DhParam`、`ArmKineCache`、`IKMethod` 管几何和运动学。
+- `utils` 提供限位、插值、COPP 轨迹规划、PID/阻抗控制等辅助工具。
 
 ```rust
-robot.move_to(MotionType::Joint([0.;6]))?;
-robot.move_to(MotionType::Cartesian(Pose::Euler([0.;3],[0.;3])))?;
+use robot_behavior::{JointSpace, Motion, MoveTo, RobotResult};
+
+fn home<R>(robot: &mut R) -> RobotResult<()>
+where
+    R: MoveTo<JointSpace<6>>,
+{
+    robot.move_to::<JointSpace<6>>([0.0; 6])
+}
 ```
 
-当然我们还准备了一些简化的函数，如以下的函数具备和上述代码相同的功能：
+## 阅读路径
 
-```rust
-robot.move_joint(&[0.;6])?;
-robot.move_cartesian(&Pose::Euler([0.;3],[0.;3]))?;
-```
+1. [总览](guide/overview.md)：了解 crate 的职责边界。
+2. [安装与特性](guide/install.md)：确认 nightly、feature 和 workspace 用法。
+3. [使用驱动](guide/using-a-driver.md)：从用户角度调用统一运动/控制接口。
+4. [实现驱动](guide/implementing-a-driver.md)：从驱动作者角度实现 trait。
+5. [能力模型](concepts/capability-model.md)：理解 trait 分层。
+6. [运动与控制](concepts/motion-and-control.md)：理解类型级空间。
+7. [几何与运动学](concepts/kinematics-and-geometry.md)：理解 `Pose`、DH、FK/IK 与轨迹规划。
+8. [API 映射](reference/api-map.md)：按源码模块查找公共项。
+9. [生态与状态](reference/ecosystem.md)：了解相关驱动、仿真器和当前状态。
 
-整体来说，我们将机器人接口分为 3 类：
+## 当前边界
 
-- **预规划接口**：在调用接口时，已经知道了完整的轨迹信息，可以直接调用接口发布轨迹。
-- **流式接口**：在调用接口时，轨迹信息未知，但是在接口运行时会不断发布新的轨迹信息。
-- **闭包接口（实时控制接口）**：在调用接口时，轨迹信息未知，在接口运行时通过闭包计算得到控制量。
-
-基本涵盖了所有的控制方法。
-
-我们正在努力实现更多机器人以及为机器人提供更加简单易懂的接口实现方法，尽情期待！
-
-你可以在 [robots](https://robot-exp-platform.github.io/robot_behavior_page/) 中找到当前已经实现了哪些机器人，如果你实现了机器人，也可以联系我们更新。
-
-你也可以在 [robot derived](./Robots%20Derived/) 中查看一些由我们实现的机器人驱动的简单文档，大多数都是作为文档的补充，说明该品类机器人的特殊接口实现，而通用的实现应该看 [How to Use](./How%20to%20Use%20a%20robot/) 中的接口说明。
-
-一些例子是：
-
-- [Franka](./Robots%20Derived/实物机器人/franka.md) 机器人，是德国 Franka Robotics 公司生产的协作机械臂，具有高精度、高灵活性和易于编程的特点，广泛应用于工业自动化、研究和教育领域。其产品主要为 `Franka Emika Panda`、`Franka Research`、`Franka Production 3` 等型号，都具有 7 个关节，末端执行器为夹爪，适用于各种抓取、装配和操作任务。
-- [Jaka](./Robots%20Derived/实物机器人/jaka.md)  机器人，是中国 Jaka 公司生产的机械臂
-- [Hans](./Robots%20Derived/实物机器人/hans.md)  机器人
-- [Aubo](./Robots%20Derived/实物机器人/aubo.md)  机器人
-
-- [RsBullet](./Robots%20Derived/仿真机器人/rsbullet.md) ,是基于 Bullet 物理引擎的机器人仿真平台，提供了高性能的物理仿真环境，支持多种机器人模型和复杂的交互场景，适用于机器人控制算法的开发和测试。支持 Windows、Linux 和 macOS 等多个操作系统，应用于机器人研究、教育和工业领域。
-
-- [Rerun](./Robots%20Derived/渲染器/rerun.md) Rerun，是一个高性能的实时渲染平台，提供了丰富的可视化工具和接口，支持多种数据类型和交互方式，适用于机器人状态监控、数据分析和调试。
+核心 Rust API 是当前主线。`ffi` / `to_py` / `to_cxx` / `to_c` 是可选门控，部分适配层仍处于迁移期；写新驱动时优先实现 Rust trait，再按需要补外语绑定。
