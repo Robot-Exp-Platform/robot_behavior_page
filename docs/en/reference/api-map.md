@@ -56,4 +56,4 @@ This page lists the current public API by source module. Most items are re-expor
 
 ## Optional graph integration
 
-The `roplat` feature exposes `MotionNode`, `SpaceMapNode`, `SafetyNode` and `ControlRhythm`. See [Roplat integration](../guide/roplat-integration.md) for `Execution`, lifecycle ownership and resource-return limits. Driver traits and tools do not require this feature.
+The `roplat` feature exposes `MotionNode`, `SpaceMapNode`, `SafetyNode` `ControlRhythm` and `AsyncControlRhythm`. See [Roplat integration](../guide/roplat-integration.md) for `Execution`, lifecycle ownership and resource-return limits. Driver traits and tools do not require this feature.

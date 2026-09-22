@@ -19,14 +19,14 @@ Use the [core syntax documentation](https://github.com/Robot-Exp-Platform/roplat
 
 `ControlRhythm` yields `(S::Obs, Duration)` and receives business `Feed = (S::Command, bool)`. The surrounding execution result is separate: `Execution<T>` represents completed output, cooperative stop, or execution error. A normal business `Result` from a Node does not automatically fail every surrounding domain.
 
-The control adapter uses `ControlWith::control_with_flow_async`:
+Existing `ControlRhythm` calls blocking `ControlWith::control_with_flow_async`; `AsyncControlRhythm` awaits the complete session from `AsyncControlWith::control_native_async`. Both share these exit rules:
 
 - A completed domain produces a command/done tuple and becomes `Continue((command, done))`.
 - A stopped or failed domain has no algorithm command and becomes `Break(())`.
 - The device then completes its own termination protocol before the rhythm returns.
 - Domain errors and device termination errors must both remain observable; a later cleanup error must not replace the original failure.
 
-This remains a **blocking device session with an async per-cycle callback**. It does not make transport truly asynchronous, and it cannot promise that sibling work on the calling executor progresses while the session blocks. Use finite mock graphs to validate orchestration; do not infer concurrent hardware behavior or timing from compilation.
+`ControlRhythm` remains a **blocking device session with an async per-cycle callback**. It does not make transport truly asynchronous, and it cannot promise that sibling work on the calling executor progresses while the session blocks. Use finite mock graphs to validate orchestration; do not infer concurrent hardware behavior or timing from compilation.
 
 ## Ownership and lifecycle limits
 
@@ -40,4 +40,15 @@ Panic, dropping the outer Future, forced task abort, and uncooperative blocking 
 
 ## Driver runtime boundary
 
-Franka currently creates a local Tokio runtime inside its blocking async-callback facade. Calling it from an already entered Tokio runtime can panic. A successful mock ControlRhythm/System test does not establish that the same calling context works for Franka. This existing restriction is tracked separately from callback failure handling.
+Franka currently creates a local Tokio runtime inside its blocking async-callback facade. Calling it from an already entered Tokio runtime can panic. A successful mock ControlRhythm/System test does not establish that the same calling context works for Franka. This restriction remains on the old blocking facade; use the native entry point below for asynchronous composition.
+
+
+## Native asynchronous control rhythm
+
+Use `AsyncControlRhythm<R, S>` in async System graphs when the driver implements `AsyncControlWith<S>`. Its Input, Output, Yield, Feed and cooperative N-return contracts match ControlRhythm. Device waits allow the outer task to poll ready siblings. Each cycle still completes its domain before sending a command, and a dependent parent successor still waits for the whole drive.
+
+Franka native sessions require an application Tokio runtime with I/O and time enabled. Entry, UDP cycles and TCP termination await I/O. Synchronous move_to keeps its ordinary kernel. Async alone does not guarantee fairness during CPU-heavy work or hardware deadlines.
+
+`AsyncControlCallback::call(&mut self, ...)` returns a Send Future and may borrow callback state across await. Ordinary FnMut-to-Send-Future callbacks have a blanket implementation. Stateful lending controllers can implement the trait directly. The driver borrows the callback for the session, without requiring per-cycle boxing, spawning or node copies.
+
+Native behavior traits need no roplat feature. Enable `robot_behavior/roplat` for graph adapters and `rsbullet/roplat` for SimRhythm. Independent repositories retain full dependency declarations with pinned Git revisions. Local integration uses source patches at the workspace root.

@@ -42,4 +42,4 @@ cargo test -p robot_behavior --lib
 
 If a public trait changes, also check real drivers, simulators and `roplat-exp` consumers.
 
-These are verification commands, not a claim that every platform, feature or device was tested. The current alignment preserves blocking 0.6 control sessions. Truly asynchronous sessions, state-validity redesign and simulator timing are separate tasks. For adapter limits, see [Roplat integration](../guide/roplat-integration.md).
+These are verification commands, not a claim that every platform, feature or device was tested. The current alignment preserves blocking 0.6 control sessions. Native asynchronous sessions use the separate AsyncControlWith/AsyncControlRhythm capability; state-validity redesign and simulator timing remain separate tasks. For adapter limits, see [Roplat integration](../guide/roplat-integration.md).

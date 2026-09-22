@@ -47,4 +47,4 @@ robot_behavior
 
 `robot_behavior` 在 `drives` 仓内作为上游子项目存在，修改后应同步到对应上游仓库，避免只停留在父仓工作树中。
 
-本轮对齐保留 0.6 阻塞控制 session；真正异步会话、状态有效性重设计和仿真时序另行处理。构建或 mock 测试不代表全部 feature、真机或实时性能已经验证。适配边界见 [Roplat 集成](../guide/roplat-integration.md)。
+本轮对齐保留 0.6 阻塞控制 session；原生异步会话由独立的 AsyncControlWith/AsyncControlRhythm 提供；状态有效性重设计和仿真时序仍另行处理。构建或 mock 测试不代表全部 feature、真机或实时性能已经验证。适配边界见 [Roplat 集成](../guide/roplat-integration.md)。

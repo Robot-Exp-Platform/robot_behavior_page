@@ -12,16 +12,16 @@
 
 ## Cargo 依赖
 
-已发布包的依赖形式：
+当前内部基线固定到已推送的 Git 提交：
 
 ```toml
 [dependencies]
-robot_behavior = "0.6"
+robot_behavior = { git = "ssh://git@github.com/Robot-Exp-Platform/robot_behavior.git", rev = "79a3820af143a3ab75dfd3b308469482aac534c0" }
 ```
 
 本页描述当前开发源码；仅相同版本号不能证明 crates.io 已发布包包含相同 API。源码对齐开发应固定对应本地/git 版本；图适配另外开启 `features = ["roplat"]`，见 [Roplat 集成](roplat-integration.md)。
 
-Roplat workspace 中通常通过顶层 `[patch.crates-io]` 或 path 依赖复用本地源码。
+当前 robot_behavior 0.6.0 尚未发布到 crates.io，已发布 roplat 0.2.2 也不等于内部核心 API。独立驱动使用完整 Git 依赖声明，集成工作区在根目录对相同 Git source 使用 path patch。SSH 访问依赖调用者已有的 GitHub 权限；可设置 `CARGO_NET_GIT_FETCH_WITH_CLI=true` 使用本机 Git/SSH，清单不包含密码或密钥。Cargo 解析可选依赖时仍可能获取其源码。
 
 ## Feature
 

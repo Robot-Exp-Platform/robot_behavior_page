@@ -48,4 +48,4 @@
 
 ## 可选图适配
 
-`roplat` feature 导出 `MotionNode`、`SpaceMapNode`、`SafetyNode` 和 `ControlRhythm`。`Execution`、生命周期和资源归还边界见 [Roplat 集成](../guide/roplat-integration.md)；设备 trait 与工具本身不要求该 feature。
+`roplat` feature 导出 `MotionNode`、`SpaceMapNode`、`SafetyNode` 、`ControlRhythm` 和 `AsyncControlRhythm`。`Execution`、生命周期和资源归还边界见 [Roplat 集成](../guide/roplat-integration.md)；设备 trait 与工具本身不要求该 feature。

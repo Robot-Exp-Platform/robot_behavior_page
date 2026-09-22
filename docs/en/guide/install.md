@@ -15,12 +15,12 @@ Nightly Rust is therefore required. The main use case is fixed-size caches such 
 
 ```toml
 [dependencies]
-robot_behavior = "0.6"
+robot_behavior = { git = "ssh://git@github.com/Robot-Exp-Platform/robot_behavior.git", rev = "79a3820af143a3ab75dfd3b308469482aac534c0" }
 ```
 
 These pages describe the current development source; the version string alone does not prove that a crates.io release contains the same API. For source-aligned graph development, use the matching local/git revision and enable `features = ["roplat"]`. See [Roplat integration](roplat-integration.md).
 
-Inside the Roplat workspace, the crate is usually consumed through a top-level `[patch.crates-io]` entry or a path dependency to the local source.
+The current robot_behavior 0.6.0 is not published on crates.io, and the published roplat 0.2.2 predates the internal execution API. Independent drivers retain complete pinned Git dependency declarations. The integration workspace applies path patches for those exact Git sources at its root. SSH uses the caller's existing GitHub access; set `CARGO_NET_GIT_FETCH_WITH_CLI=true` to use local Git/SSH credentials without putting them in manifests. Cargo may fetch optional dependency metadata even when the feature is off.
 
 ## Features
 
