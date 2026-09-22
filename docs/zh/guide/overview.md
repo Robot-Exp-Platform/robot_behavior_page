@@ -31,7 +31,7 @@ robot_behavior trait 与工具
 | 模型参数 | `Joints<N>`、`EndPoint`、`RobotDescription` | 关节限位、末端限位、URDF 信息 |
 | 机械臂表面 | `Arm<N>`、`ArmState<N>`、`LoadState` | 统一机械臂状态、负载、临时限位覆盖 |
 | 运动命令 | `MotionSpace`、`MoveTo`、`MoveTraj`、`Motion` | 单点、轨迹、路径、waypoint 命令 |
-| 实时控制 | `ControlSpace`、`RealtimeControl`、`Control` | 闭包式控制循环 |
+| 实时控制 | `ControlSpace`、`ControlWith`、`Control` | 闭包式控制循环 |
 | 运动学 | `Pose`、`DhParam`、`ArmKineCache`、`IKMethod` | SE(3)、DH、FK、IK、雅可比 |
 | 场景扩展 | `PhysicsEngine`、`Renderer`、`World` | 仿真、渲染、实体构建接口 |
 
@@ -42,7 +42,11 @@ robot_behavior trait 与工具
 ```rust
 robot.move_to::<JointSpace<6>>([0.0; 6])?;
 robot.move_to::<FlangeSpace>(Pose::Position([0.4, 0.0, 0.3]))?;
-robot.control_with_closure::<TorqueControl<7>, _>(|state, dt| { /* ... */ })?;
+robot.control_with::<TorqueControl<7>, _>(|state, dt| { /* ... */ })?;
 ```
 
 这样做的好处是：同样都是 `[f64; N]` 的命令，关节位置、关节速度、关节力矩可以通过类型区分；驱动也可以为不同空间分别实现能力，而不是在一个枚举分支里做运行时检查。
+
+## 图适配
+
+`roplat` feature 默认关闭，设备能力 trait 保持独立；启用后使用可选适配层对接当前 Node/Rhythm 契约，见 [Roplat 集成](roplat-integration.md)。

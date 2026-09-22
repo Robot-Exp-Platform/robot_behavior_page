@@ -18,6 +18,8 @@ Nightly Rust is therefore required. The main use case is fixed-size caches such 
 robot_behavior = "0.6"
 ```
 
+These pages describe the current development source; the version string alone does not prove that a crates.io release contains the same API. For source-aligned graph development, use the matching local/git revision and enable `features = ["roplat"]`. See [Roplat integration](roplat-integration.md).
+
 Inside the Roplat workspace, the crate is usually consumed through a top-level `[patch.crates-io]` entry or a path dependency to the local source.
 
 ## Features
@@ -25,6 +27,7 @@ Inside the Roplat workspace, the crate is usually consumed through a top-level `
 | Feature | Purpose | Notes |
 |---|---|---|
 | `default` | empty | the core Rust traits need no extra feature |
+| `roplat` | enables `robot_behavior::roplat` and the roplat dependency | off by default |
 | `ffi` | enables the FFI module gate | base gate |
 | `to_py` | `ffi` + `pyo3` | Python binding support |
 | `to_cxx` | `ffi` + `cxx` | C++ binding support |
@@ -38,13 +41,15 @@ Inside the Roplat workspace, the crate is usually consumed through a top-level `
 From the `drives` workspace:
 
 ```powershell
-cargo build -p robot_behavior
-cargo test -p robot_behavior --doc
+cargo check -p robot_behavior --no-default-features
+cargo check -p robot_behavior --features roplat
+cargo test -p robot_behavior --lib
 ```
 
 From a standalone `robot_behavior` checkout:
 
 ```powershell
-cargo build
-cargo test --doc
+cargo check --no-default-features
+cargo check --features roplat
+cargo test --lib
 ```

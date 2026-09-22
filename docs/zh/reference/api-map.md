@@ -8,12 +8,12 @@
 |---|---|---|
 | `RobotException`、`RobotResult` | `exception.rs` | 统一错误类型 |
 | `Robot`、`RobotDescription` | `robot/mod.rs` | 生命周期与描述 |
-| `Arm`、`ArmState`、`ArmStateSample` | `robot/arm.rs` | 机械臂能力表面 |
+| `Arm`、`ArmState` | `robot/arm.rs` | 机械臂能力表面 |
 | `Joints` | `robot/joint.rs` | 关节模型 |
 | `EndPoint` | `robot/endpoint.rs` | 笛卡尔末端能力 |
 | `JointSpace`、`EndSpace`、`FlangeSpace`、`TcpSpace`、`Relative`、`Inertial` | `robot/spaces.rs` | 空间 |
 | `MotionSpace`、`MoveTo`、`MoveTraj`、`Motion`、`MotionFile` | `robot/motion.rs` | 运动命令 |
-| `ControlSpace`、`RealtimeControl`、`Control` | `robot/control.rs` | 实时控制 |
+| `ControlSpace`、`ControlStep`、`ControlWith`、`Control` | `robot/control.rs` | 实时控制 |
 | `Pose`、`Coord` | `robot/types.rs` | 位姿与坐标系 |
 | `DhParam`、`dh_param!`、`mdh_param!` | `robot/dh.rs` | DH 参数 |
 | `ArmForwardKinematics`、`ArmInverseKinematics`、`ArmKineCache` | `robot/kinematics_dynamics.rs` | FK/IK 与雅可比 |
@@ -21,6 +21,8 @@
 | `PhysicsEngine`、`AddSearchPath` | `physics_engine.rs` | 仿真后端接口 |
 | `Renderer`、`AttachFrom` | `renderer.rs` | 渲染/可视化接口 |
 | `World`、`Entity`、`EntityBuilder`、`AddRobot`、`AddCollision`、`AddVisual` | `world.rs` | 场景构建接口 |
+| `StateView`、`JointSample`、`JointState`、`SpatialSample` | `robot/state.rs` | measured / commanded / desired 状态 |
+| `ControlObservation`、`ControlObserver` | `robot/observe.rs` | 原生状态观察钩子 |
 
 ## utils
 
@@ -43,3 +45,7 @@
 ## 非主线目录
 
 源码树中可能存在 `robot_old/` 或旧 FFI 宏文件，它们用于迁移和兼容，不应作为新驱动的主文档依据。新驱动优先实现本页列出的当前 Rust trait。
+
+## 可选图适配
+
+`roplat` feature 导出 `MotionNode`、`SpaceMapNode`、`SafetyNode` 和 `ControlRhythm`。`Execution`、生命周期和资源归还边界见 [Roplat 集成](../guide/roplat-integration.md)；设备 trait 与工具本身不要求该 feature。

@@ -7,16 +7,16 @@
 - `Robot` 管生命周期和基础状态读取。
 - `Joints<N>` / `EndPoint` 管模型级限位。
 - `MotionSpace` / `MoveTo` / `MoveTraj` 管预规划运动。
-- `ControlSpace` / `RealtimeControl` 管闭包式实时控制。
+- `ControlSpace` / `ControlWith` 管闭包式实时控制。
 - `Pose`、`DhParam`、`ArmKineCache`、`IKMethod` 管几何和运动学。
 - `utils` 提供限位、插值、COPP 轨迹规划、PID/阻抗控制等辅助工具。
 
 ```rust
-use robot_behavior::{JointSpace, Motion, MoveTo, RobotResult};
+use robot_behavior::{JointSpace, Motion, RobotResult};
 
 fn home<R>(robot: &mut R) -> RobotResult<()>
 where
-    R: MoveTo<JointSpace<6>>,
+    R: robot_behavior::MoveTo<JointSpace<6>>,
 {
     robot.move_to::<JointSpace<6>>([0.0; 6])
 }
@@ -37,3 +37,5 @@ where
 ## 当前边界
 
 核心 Rust API 是当前主线。`ffi` / `to_py` / `to_cxx` / `to_c` 是可选门控，部分适配层仍处于迁移期；写新驱动时优先实现 Rust trait，再按需要补外语绑定。
+
+可选 `roplat` feature、创建层生命周期和协作退出见 [Roplat 集成](guide/roplat-integration.md)。本文档对应开发源码，不代表已完成真机或实时性能验收。

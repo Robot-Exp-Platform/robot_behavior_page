@@ -12,12 +12,14 @@
 
 ## Cargo 依赖
 
-独立项目可使用 git 依赖：
+已发布包的依赖形式：
 
 ```toml
 [dependencies]
 robot_behavior = "0.6"
 ```
+
+本页描述当前开发源码；仅相同版本号不能证明 crates.io 已发布包包含相同 API。源码对齐开发应固定对应本地/git 版本；图适配另外开启 `features = ["roplat"]`，见 [Roplat 集成](roplat-integration.md)。
 
 Roplat workspace 中通常通过顶层 `[patch.crates-io]` 或 path 依赖复用本地源码。
 
@@ -26,6 +28,7 @@ Roplat workspace 中通常通过顶层 `[patch.crates-io]` 或 path 依赖复用
 | Feature | 作用 | 备注 |
 |---|---|---|
 | 默认 | 核心 Rust trait 与工具 | 推荐新驱动优先使用 |
+| `roplat` | 启用 `robot_behavior::roplat` 和 roplat 依赖 | 默认关闭 |
 | `ffi` | 打开 FFI 模块门控 | 作为外语绑定基础 |
 | `to_py` | 启用 PyO3 | 同时启用 `ffi` |
 | `to_cxx` | 启用 `cxx` | 同时启用 `ffi` |
@@ -38,8 +41,9 @@ Roplat workspace 中通常通过顶层 `[patch.crates-io]` 或 path 依赖复用
 在 `drives` workspace 中：
 
 ```powershell
-cargo build -p robot_behavior
-cargo test -p robot_behavior --doc
+cargo check -p robot_behavior --no-default-features
+cargo check -p robot_behavior --features roplat
+cargo test -p robot_behavior --lib
 ```
 
 生成页面：
@@ -63,5 +67,5 @@ mkdocs serve
 - `serde` / `serde_json`：状态、位姿、轨迹文件序列化。
 - `thiserror` / `anyhow`：错误统一。
 - `copp`：`utils::trajectory` 中的时间最优/限位轨迹规划。
-- `roplat`：与 roplat 节点生态衔接。
+- `roplat`：可选节点/节律适配，需启用同名 feature。
 - `pyo3` / `cxx`：可选外语绑定。

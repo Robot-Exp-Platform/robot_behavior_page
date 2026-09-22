@@ -18,9 +18,11 @@ The current version is centered on **typed motion spaces**, **typed realtime con
 | Lifecycle | `Robot` | connect, enable, read state, stop, shutdown |
 | Arm description | `Joints<N>`, `EndPoint`, `Arm<N>` | joint limits, Cartesian limits, state and payload |
 | Motion | `MotionSpace`, `MoveTo`, `MoveTraj`, `Motion` | typed motion spaces and a uniform call surface |
-| Realtime control | `ControlSpace`, `RealtimeControl`, `Control` | typed control channels and closure-driven loops |
+| Realtime control | `ControlSpace`, `ControlWith`, `Control` | typed control channels and closure-driven loops |
 | Geometry / kinematics | `Pose`, `DhParam`, `ArmKineCache`, `IKMethod` | pose, DH, FK/IK, Jacobian |
 | Utilities | `utils::*` | limits, interpolation, trajectory generation, copp retiming |
 
 !!! note
     `src/robot_old` is not the current public interface. This documentation follows the items re-exported by `src/lib.rs` and `src/robot/mod.rs`.
+
+For the optional `roplat` feature, lifecycle ownership and cooperative exits, read [Roplat integration](guide/roplat-integration.md). This development documentation does not certify hardware operation or realtime timing.

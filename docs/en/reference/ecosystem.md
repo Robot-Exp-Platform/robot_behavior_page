@@ -15,9 +15,9 @@
 | `franka-rust` | Franka / Panda real arm driver |
 | `libjaka-rs` | JAKA arm driver |
 | `libhans-rs` | Hans arm driver |
-| `libaubo-rs` | AUBO arm driver |
+| `libaubo-rs` | AUBO interface scaffold; several operations are not implemented |
 | `rsbullet` | PyBullet / Bullet simulation wrapper |
-| `roplat_exrobot` | adapter from behavior traits to roplat nodes |
+| `roplat_exrobot` | mock/example robot and foreign-language demonstration |
 | `roplat_rerun` | Rerun visualization adapter |
 | `utils/rerun_urdf` | URDF loading and Rerun logging tool |
 
@@ -28,16 +28,18 @@ The source tree may keep `robot_old` or older FFI examples for migration referen
 - `Robot`
 - `Joints<N>` / `EndPoint` / `Arm<N>`
 - `MotionSpace` / `MoveTo` / `MoveTraj` / `Motion`
-- `ControlSpace` / `RealtimeControl` / `Control`
+- `ControlSpace` / `ControlWith` / `Control`
 
 ## Stability Notes
 
 The current version is `0.6.x`, and trait details may still change across minor versions. Before submitting a driver, verify at least:
 
 ```powershell
-cargo build -p robot_behavior
-cargo test -p robot_behavior --doc
-cargo check --manifest-path ../drives/Cargo.toml
+cargo check -p robot_behavior --no-default-features
+cargo check -p robot_behavior --features roplat
+cargo test -p robot_behavior --lib
 ```
 
 If a public trait changes, also check real drivers, simulators and `roplat-exp` consumers.
+
+These are verification commands, not a claim that every platform, feature or device was tested. The current alignment preserves blocking 0.6 control sessions. Truly asynchronous sessions, state-validity redesign and simulator timing are separate tasks. For adapter limits, see [Roplat integration](../guide/roplat-integration.md).
