@@ -1,81 +1,64 @@
 # 运动与控制
 
-## MotionSpace
+## 运动空间
 
-`MotionSpace<R>` 是一个类型级映射：
-
-```rust
-pub trait MotionSpace<R: ?Sized> {
-    type Target;
-}
-```
-
-它没有方法，只说明某个空间在某个机器人上携带什么目标类型。
-
-内置空间：
+`MotionSpace<R>` 把类型级空间映射为 `Target`：
 
 | 空间 | Target |
 |---|---|
-| `JointSpace<N>` | `[f64; N]` |
-| `FlangeSpace` | `Pose` |
-| `TcpSpace` | `Pose` |
-| `EndSpace` | `Pose`，要求机器人实现 `EndPoint` |
-| `Relative<S>` | `S::Target` |
-| `Inertial<S>` | `S::Target` |
+| `JointSpace<N>` | `[f64; N]`，要求 `R: Joints<N>` |
+| `EndSpace` | `Pose`，要求 `R: EndPoint` |
+| `FlangeSpace`、`TcpSpace` | `Pose` |
+| `Relative<S>`、`Inertial<S>` | `S::Target` |
 
-## MoveTo 与 MoveTraj
+驱动实现 `MoveTo<S>` / `MoveTraj<S>`；应用通过 blanket `Motion` 接口调用，用 turbofish 选择空间。
 
-`MoveTo<S>` 表达单点目标：
+`move_to` 阻塞到完成或失败。`move_to_async` 返回惰性 Future，默认返回“不支持”；只有真实异步后端才应实现。它与下面“接受异步控制闭包”的契约不同。
+
+`MoveTraj<S>` 要求实现 `move_traj`、`move_path` 和 `move_waypoints`。驱动可以把规划归约成密集轨迹，也可以对不支持的 path/waypoint 显式返回 `UnprocessableInstructionError`。仿真器的入队/注册语义需要单独查看。
+
+## 控制通道
+
+`ControlSpace<R>` 固定 `Obs` 与 `Command`；负载类型相同不代表通道相同。
+
+| 通道 | Obs | Command |
+|---|---|---|
+| `TorqueControl<N>` | `JointState<N>` | `[f64; N]` |
+| `JointPositionControl<N>` | `JointState<N>` | `[f64; N]` |
+| `JointVelocityControl<N>` | `JointState<N>` | `[f64; N]` |
+| `ArmTorqueControl<N>` | `ArmState<N>` | `[f64; N]` |
+| `CartesianPoseControl<N>` | `ArmState<N>` | `Pose` |
+| `CartesianVelocityControl<N>` | `ArmState<N>` | `[f64; 6]` |
+| `BaseVelocityControl` | `BaseState` | `[f64; 6]` |
+
+## 回调可以产生指令，也可以结束会话
+
+驱动实现 `ControlWith<S>::control_with_flow`。以下列出关键签名，省略外围 trait 约束：
 
 ```rust
-fn move_to(&mut self, target: S::Target) -> RobotResult<()>;
-fn move_to_sync(&mut self, target: S::Target) -> RobotResult<()>;
-```
+pub type ControlStep<Command> = std::ops::ControlFlow<(), (Command, bool)>;
 
-`MoveTraj<S>` 表达密集轨迹、连续 path 或 sparse waypoint：
-
-```rust
-fn move_traj(&mut self, traj: Vec<S::Target>) -> RobotResult<()>;
-fn move_path<F>(&mut self, path: F) -> RobotResult<()>
+fn control_with_flow<F>(&mut self, closure: F) -> RobotResult<()>
 where
-    F: Fn(f64) -> Option<S::Target>;
-fn move_waypoints(&mut self, waypoints: Vec<S::Target>) -> RobotResult<()>;
+    F: FnMut(S::Obs, Duration) -> ControlStep<S::Command>;
 ```
 
-`Motion` 是 blanket trait，用户调用它，驱动不需要实现它。
-
-## ControlSpace
-
-`ControlSpace<R>` 是控制侧的类型级映射：
-
-```rust
-pub trait ControlSpace<R: ?Sized> {
-    type Obs;
-    type Command;
-}
-```
-
-内置通道全部观察 `ArmState<N>`：
-
-| 通道 | Command |
+| 回调返回值 | 含义 |
 |---|---|
-| `TorqueControl<N>` | `[f64; N]` |
-| `JointPositionControl<N>` | `[f64; N]` |
-| `JointVelocityControl<N>` | `[f64; N]` |
-| `CartesianVelocityControl<N>` | `[f64; 6]` |
+| `ControlFlow::Continue((command, false))` | 发送本次计算出的指令，继续控制。 |
+| `ControlFlow::Continue((command, true))` | 发送最后一条有效指令，然后正常结束。 |
+| `ControlFlow::Break(())` | 本周期没有算法指令，进入设备协议规定的会话结束流程。 |
 
-虽然前三个命令类型都是 `[f64; N]`，但由于通道类型不同，Rust 可以区分不同 impl。
+`Break(())` 不等于急停，也不代表设备不会再发送任何协议报文。设备可以按其协议进行结束握手或发送连续性报文；不能为了填充返回值而捏造零指令。进入任一种结束路径后，驱动都不能再次调用控制闭包。
 
-## RealtimeControl
+原有 `control_with` 保留：其闭包返回 `(command, done)`，默认包装为 `Continue((command, done))`，已有控制器生成函数仍可使用这个入口。闭包只属于本次调用，没有统一的 `Send + 'static` 要求，驱动不能在会话返回后继续保存它。
 
-驱动实现：
+`hold_command(obs)` 是基于当前通道观测的连续性回退，不是通用安全命令，也不能替代设备安全机制。
 
-```rust
-fn safe_command() -> S::Command;
+## 异步闭包与阻塞会话
 
-fn control_with_closure<F>(&mut self, closure: F) -> RobotResult<()>
-where
-    F: FnMut(S::Obs, Duration) -> (S::Command, bool) + Send + 'static;
-```
+`control_with_flow_async` 接受 `async FnMut(...) -> ControlStep<Command>`；`control_with_async` 接受 `async FnMut(...) -> (Command, bool)`。**两者返回的仍是 `RobotResult<()>`，不是 Future；整个会话仍然阻塞。** 默认适配每周期通过 `futures::executor::block_on` 完成回调 Future。
 
-闭包每个控制周期收到观测和 `dt`，返回命令和 `done` 标志。`safe_command` 用于断开或退出时的安全回退，例如零力矩或保持命令。
+因此，闭包可以写 async 不代表已经建立 Tokio reactor，也不保证调用线程上的定时器、网络 I/O 或其他 Future 得到推进。依赖 runtime 的操作必须核对具体驱动的执行模型。真正异步的设备会话是独立的后续设计任务。
+
+可选图适配层见 [Roplat 集成](../guide/roplat-integration.md)。

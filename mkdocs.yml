@@ -10,9 +10,6 @@ theme:
     - content.code.annotate
     - content.tabs.link
     - navigation.footer
-    - navigation.instant
-    - navigation.instant.prefetch
-    - navigation.instant.progress
   icon:
     repo: fontawesome/brands/git-alt
   palette:
@@ -47,6 +44,7 @@ plugins:
             安装与特性: Installation and Features
             使用驱动: Using a Driver
             实现驱动: Implementing a Driver
+            Roplat 集成: Roplat Integration
             概念: Concepts
             能力模型: Capability Model
             运动与控制: Motion and Control
@@ -99,6 +97,7 @@ nav:
     - 安装与特性: guide/install.md
     - 使用驱动: guide/using-a-driver.md
     - 实现驱动: guide/implementing-a-driver.md
+    - Roplat 集成: guide/roplat-integration.md
   - 概念:
     - 能力模型: concepts/capability-model.md
     - 运动与控制: concepts/motion-and-control.md

@@ -1,6 +1,6 @@
 # Implementing a Driver
 
-An arm driver normally implements traits in this order: lifecycle, physical description, motion spaces, realtime control, and finally the unified `Arm` surface.
+An arm driver normally implements lifecycle, limits, state conversion, motion, control, and the relevant capability bundle. The snippets below are mock skeletons: returning a default state or `Ok(())` is not an implementation of hardware readback or motion.
 
 ## 1. Implement Robot
 
@@ -105,7 +105,11 @@ impl Arm<6> for MyArm {
 ## 5. Optional Capabilities
 
 - `MoveTraj<S>`: dense trajectories, paths and waypoints.
-- `RealtimeControl<S>`: torque, position, velocity or Cartesian-velocity closure loops.
+- `ControlWith<S>`: implement `control_with_flow` for each supported channel. Handle `Continue((command, done))` and `Break(())` separately; see [Motion and Control](../concepts/motion-and-control.md).
 - `RobotDescription`: URDF asset path.
 - `ArmForwardKinematics` / `ArmInverseKinematics`: DH, FK/IK, Jacobians and IK updates.
 - `PhysicsEngine`, `AddRobot`, `Renderer`: simulation and visualization backends.
+
+## Optional Roplat adapter
+
+Keep device traits usable without the `roplat` feature. A Node or Rhythm uses `Lifecycle`, whose hooks belong to its creating scope. This does not automatically map every `Robot::init` / `shutdown` call to a hook. Keep device session termination separate from final object shutdown. See [Roplat integration](roplat-integration.md).

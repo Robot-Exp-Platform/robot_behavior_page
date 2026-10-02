@@ -16,11 +16,13 @@ This page lists the current public API by source module. Most items are re-expor
 
 | Module | Public items |
 |---|---|
-| `arm` | `Arm`, `ArmState`, `ArmStateSample` |
+| `arm` | `Arm`, `ArmState` |
 | `joint` | `Joints` |
+| `state` | `StateView`, `JointSample`, `JointState`, `SpatialSample`, `BaseState`, `MobileBaseState`, `QuadrupedState`, `HumanoidState` |
+| `observe` | `ControlObservation`, `ControlObserver` |
 | `endpoint` | `EndPoint` |
 | `motion` | `MotionSpace`, `MoveTo`, `MoveTraj`, `Motion`, `MotionFile` |
-| `control` | `ControlSpace`, `RealtimeControl`, `Control`, `TorqueControl`, `JointPositionControl`, `JointVelocityControl`, `CartesianVelocityControl` |
+| `control` | `ControlSpace`, `ControlStep`, `ControlWith`, `Control`, `TorqueControl`, `JointPositionControl`, `JointVelocityControl`, `CartesianVelocityControl` |
 | `types` | `Coord`, `Pose` |
 | `dh` | `DhParam`, `dh_param!`, `mdh_param!` |
 | `kinematics_dynamics` | `Iso3`, `Twist`, `Wrench`, `JVec`, `JMat`, `Jaco`, `Link`, `Joint`, `JointType`, `ArmKineCache`, `ArmForwardKinematics`, `ArmInverseKinematics`, `IKMethod`, `CommonStop`, `AnalyticFamily`, `ArmDynamics` |
@@ -51,3 +53,7 @@ This page lists the current public API by source module. Most items are re-expor
 ## FFI
 
 `ffi`, `to_py`, `to_cxx` and `to_c` are feature-gated adapters. They are not required by the current core Rust API and should be checked separately with the target feature before use.
+
+## Optional graph integration
+
+The `roplat` feature exposes `MotionNode`, `SpaceMapNode`, `SafetyNode` `ControlRhythm` and `AsyncControlRhythm`. See [Roplat integration](../guide/roplat-integration.md) for `Execution`, lifecycle ownership and resource-return limits. Driver traits and tools do not require this feature.

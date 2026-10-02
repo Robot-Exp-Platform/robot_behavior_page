@@ -24,7 +24,7 @@ robot.shutdown()?;
 use robot_behavior::{FlangeSpace, JointSpace, Motion, Pose};
 
 robot.move_to::<JointSpace<6>>([0.0; 6])?;
-robot.move_to_sync::<FlangeSpace>(Pose::Position([0.4, 0.0, 0.3]))?;
+robot.move_to::<FlangeSpace>(Pose::Position([0.4, 0.0, 0.3]))?;
 ```
 
 常见空间：
@@ -52,29 +52,33 @@ robot.move_path::<JointSpace<6>, _>(|s| {
 robot.move_waypoints::<JointSpace<6>>(vec![[0.0; 6], [0.4; 6], [0.0; 6]])?;
 ```
 
-默认 `move_path` / `move_waypoints` 不会自动规划，具体驱动需要显式实现。可复用 `utils::trajectory` 或 `utils::path_generate`。
+`move_path` / `move_waypoints` 需要具体驱动实现；不支持的规划入口应显式返回错误。可复用 `utils::trajectory` 或 `utils::path_generate`。
 
-## 实时控制
+## 控制会话
 
-实时控制通过 `ControlSpace` 类型选择控制通道：
+普通控制器仍可通过 `Control::control_with` 返回 `(command, done)`。当本次回调需要在没有算法指令时结束，使用 `Control::control_with_flow`。以下只展示无指令退出路径，不是真机启动流程：
 
 ```rust
-use robot_behavior::{Control, TorqueControl};
+use std::ops::ControlFlow;
+use robot_behavior::{Control, RobotResult, TorqueControl};
 
-robot.control_with_closure::<TorqueControl<7>, _>(|state, dt| {
-    let _ = (state, dt);
-    ([0.0; 7], true)
-})?;
+fn finish_session<R>(robot: &mut R) -> RobotResult<()>
+where
+    R: robot_behavior::ControlWith<TorqueControl<7>>,
+{
+    robot.control_with_flow::<TorqueControl<7>, _>(|_state, _dt| {
+        ControlFlow::Break(())
+    })
+}
 ```
 
-内置通道：
+需要发送有效的最后一条指令时，返回 `Continue((command, true))`；驱动先发送，再正常结束。`Break(())` 则进入设备结束协议，两者均不能解释为通用急停。`hold_command(obs)` 是连续性回退，不是安全保证。
 
-| 通道 | 观测 | 命令 |
-|---|---|---|
-| `TorqueControl<N>` | `ArmState<N>` | `[f64; N]` torque |
-| `JointPositionControl<N>` | `ArmState<N>` | `[f64; N]` joint position |
-| `JointVelocityControl<N>` | `ArmState<N>` | `[f64; N]` joint velocity |
-| `CartesianVelocityControl<N>` | `ArmState<N>` | `[f64; 6]` spatial velocity |
+`_async` 版本只是接收异步周期闭包，整个控制 session 仍阻塞。通道的观测类型、三种返回值和 runtime 边界见 [运动与控制](../concepts/motion-and-control.md)。
+
+## Roplat 应用
+
+显式启用 `roplat` feature，应用通过 `#[roplat::system]` 组织节点和多层节律域。设备调用放在对应驱动、Node 或 Rhythm 实现中；不要把应用图改成手写 `.process()` 调用链。具体执行状态与资源边界见 [Roplat 集成](roplat-integration.md)。
 
 ## 错误处理
 

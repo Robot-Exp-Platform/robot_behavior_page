@@ -10,23 +10,23 @@ graph TD
   Robot --> EndPoint
   Robot --> MoveTo
   Robot --> MoveTraj
-  Robot --> RealtimeControl
+  Robot --> ControlWith
   Joints --> Arm
   EndPoint --> Arm
   MoveTo --> Arm
   MotionSpace --> MoveTo
   MotionSpace --> MoveTraj
-  ControlSpace --> RealtimeControl
+  ControlSpace --> ControlWith
   ArmForwardKinematics --> ArmInverseKinematics
   Joints --> ArmInverseKinematics
 ```
 
 ## 核心原则
 
-- 生命周期与能力分离：`Robot` 只表达所有设备共有的生命周期。
+- 生命周期与能力分离：`Robot` 表达生命周期、原生状态和控制周期；具体运动能力由其他 trait 扩展。
 - 模型参数是关联常量：关节限位、末端限位、DH 参数都属于机器人型号。
 - 命令语义由类型表达：`JointSpace<N>`、`TorqueControl<N>` 这类 marker 类型用于消除运行时分支歧义。
-- 用户入口由 blanket trait 提供：`Motion` / `Control` 不需要驱动实现，只负责把调用转发到具体 `MoveTo` / `RealtimeControl` impl。
+- 用户入口由 blanket trait 提供：`Motion` / `Control` 不需要驱动实现，只负责把调用转发到具体 `MoveTo` / `ControlWith` impl。
 
 ## Root re-export
 
@@ -36,7 +36,7 @@ graph TD
 use robot_behavior::{Robot, Joints, EndPoint, Arm, Pose, JointSpace};
 ```
 
-也提供 `robot_behavior::behavior::*` 作为更窄的行为 prelude，便于驱动项目统一导入。
+也提供 `robot_behavior::behavior::*` 作为更窄的行为 prelude，供应用侧导入；驱动实现侧使用 `robot_behavior::driver::*`。
 
 ## 与旧接口的区别
 
@@ -45,5 +45,5 @@ use robot_behavior::{Robot, Joints, EndPoint, Arm, Pose, JointSpace};
 - `Robot`
 - `MoveTo<S>` / `MoveTraj<S>`
 - `Motion`
-- `RealtimeControl<S>` / `Control`
+- `ControlWith<S>` / `Control`
 - `Arm<N>`

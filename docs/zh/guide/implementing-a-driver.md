@@ -1,6 +1,6 @@
 # 实现驱动
 
-一个机械臂驱动通常从小到大实现 trait。下面是当前源码对应的推荐顺序。
+一个机械臂驱动通常依次实现生命周期、限位、状态转换、运动、控制和能力束。下面的代码是 mock 骨架；返回默认状态或 `Ok(())` 不代表已实现真机读取或运动。
 
 ## 1. 实现 Robot
 
@@ -25,7 +25,7 @@ impl Robot for MyArm {
 }
 ```
 
-`init`、`shutdown`、`enable`、`disable`、`stop` 等生命周期方法都有安全的 no-op 默认实现；真实驱动应按硬件语义覆盖。
+`init`、`shutdown`、`enable`、`disable`、`stop` 等生命周期方法有 no-op 默认实现；默认无操作并不提供设备安全保证，真实驱动应按硬件语义覆盖。
 
 ## 2. 描述关节和末端限位
 
@@ -118,3 +118,9 @@ impl ArmForwardKinematics<6> for MyArm {
 ```
 
 如果有解析 IK，可实现 `ArmInverseKinematics::ik_analytic_all`；否则可以复用默认的 DLS、JT、Newton、LM 单步更新。
+
+## 6. 实现控制与可选图适配
+
+每个支持的通道实现 `ControlWith<S>::control_with_flow`，分别处理 `Continue((command, done))` 和无算法指令的 `Break(())`，见 [运动与控制](../concepts/motion-and-control.md)。`control_with_flow_async` 仍是阻塞会话中的异步周期闭包，不是真正异步设备接口。
+
+设备 trait 应能在关闭 `roplat` feature 时使用。Node / Rhythm 的 `Lifecycle` 由创建层负责；它不会自动把所有 `Robot::init` / `shutdown` 调用映射成钩子。设备 session 结束与对象最终关闭分开处理，见 [Roplat 集成](roplat-integration.md)。

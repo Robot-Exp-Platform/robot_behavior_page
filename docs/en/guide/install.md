@@ -15,16 +15,19 @@ Nightly Rust is therefore required. The main use case is fixed-size caches such 
 
 ```toml
 [dependencies]
-robot_behavior = "0.6"
+robot_behavior = { version = "0.6.0", git = "ssh://git@github.com/Robot-Exp-Platform/robot_behavior.git", rev = "781245ca4d662a693cfb24955328a5a610859591" }
 ```
 
-Inside the Roplat workspace, the crate is usually consumed through a top-level `[patch.crates-io]` entry or a path dependency to the local source.
+These pages describe the current development source; the version string alone does not prove that a crates.io release contains the same API. For source-aligned graph development, use the matching local/git revision and enable `features = ["roplat"]`. See [Roplat integration](roplat-integration.md).
+
+The prepared versions are robot_behavior 0.6.0 and roplat 0.3.0; neither has been uploaded to crates.io. The published roplat 0.2.2 predates the current execution API and cannot replace the pinned core source. Independent drivers retain complete pinned Git dependency declarations. The integration workspace applies path patches for those exact Git sources at its root. SSH uses the caller's existing GitHub access; set `CARGO_NET_GIT_FETCH_WITH_CLI=true` to use local Git/SSH credentials without putting them in manifests. Cargo may fetch optional dependency metadata even when the feature is off.
 
 ## Features
 
 | Feature | Purpose | Notes |
 |---|---|---|
 | `default` | empty | the core Rust traits need no extra feature |
+| `roplat` | enables `robot_behavior::roplat` and the roplat dependency | off by default |
 | `ffi` | enables the FFI module gate | base gate |
 | `to_py` | `ffi` + `pyo3` | Python binding support |
 | `to_cxx` | `ffi` + `cxx` | C++ binding support |
@@ -38,13 +41,15 @@ Inside the Roplat workspace, the crate is usually consumed through a top-level `
 From the `drives` workspace:
 
 ```powershell
-cargo build -p robot_behavior
-cargo test -p robot_behavior --doc
+cargo check -p robot_behavior --no-default-features
+cargo check -p robot_behavior --features roplat
+cargo test -p robot_behavior --lib
 ```
 
 From a standalone `robot_behavior` checkout:
 
 ```powershell
-cargo build
-cargo test --doc
+cargo check --no-default-features
+cargo check --features roplat
+cargo test --lib
 ```

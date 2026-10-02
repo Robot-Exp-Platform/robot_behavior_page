@@ -18,10 +18,14 @@ It is not a runtime and does not schedule systems. Concrete drivers, simulators 
 |---|---|
 | `drives/franka-rust`, `libjaka-rs`, `libhans-rs`, `libaubo-rs` | real robot drivers consuming these traits |
 | `drives/rsbullet` | simulation backend consuming world / physics / robot description interfaces |
-| `drives/roplat_exrobot` | adapter from behavior traits to roplat nodes |
+| `drives/roplat_exrobot` | mock/example robot implementation and foreign-language example |
 | `roplat` | scheduling and node framework, not implemented here |
 | `roplat-exp` | experiment workspace using this crate through patches |
 
 ## Version Status
 
 The crate is still evolving. The core Rust traits are the mainline API; `to_py`, `to_cxx` and `to_c` are optional FFI gates and should be checked against the current source before use.
+
+## Graph integration
+
+The `roplat` feature is off by default. Device capability traits remain independent; optional adapters bridge them to the current Node/Rhythm contracts. See [Roplat integration](roplat-integration.md).
