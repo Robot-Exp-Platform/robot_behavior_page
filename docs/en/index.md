@@ -1,5 +1,8 @@
 # Robot Behavior
 
+!!! warning "This site is frozen"
+    On 2026-10-26 `robot_behavior` was renamed `roplat_behavior` and split into `roplat_behavior`, `roplat_kinematics`, `roplat_control` and `roplat_trajectory`. This site documents robot_behavior 0.8 and is no longer updated. `robot_behavior` 0.8.1 on crates.io is the final release (same API as 0.8.0). Code and migration notes: [roplat_behavior](https://github.com/Robot-Exp-Platform/roplat_behavior); as of 2026-10-26, 0.9 is not on crates.io yet.
+
 `robot_behavior` is the shared behavior-contract crate for the Roplat driver stack. It is not tied to one robot model; it extracts the behavior interfaces that real arms, simulators, visualizers and Roplat adapters need to share.
 
 The current version is centered on **typed motion spaces**, **typed realtime control channels**, **fixed-DoF arm modeling**, and reusable kinematics / trajectory utilities.
