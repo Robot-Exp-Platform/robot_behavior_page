@@ -1,5 +1,7 @@
 # Robot Behavior
 
+> **本站已冻结。** `robot_behavior` 已于 2026-10-26 改名为 `roplat_behavior` 并拆分为 `roplat_behavior`、`roplat_kinematics`、`roplat_control`、`roplat_trajectory`。本站内容停留在 robot_behavior 0.8，不再更新。crates.io 上的 `robot_behavior` 0.8.1 是最终版本（API 与 0.8.0 相同）。新代码与迁移说明见 [roplat_behavior](https://github.com/Robot-Exp-Platform/roplat_behavior)；截至 2026-10-26，0.9 尚未发布到 crates.io。
+
 `robot_behavior` 是 Roplat 驱动体系的行为契约 crate。它定义“机器人应该暴露什么能力”，而不是直接实现某一个硬件驱动。
 
 当前实现已经从旧的运行时 `MotionType` / `ControlType` 枚举，切换为类型级空间模型：
